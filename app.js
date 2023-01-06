@@ -12,7 +12,7 @@ async function run () {
     index: 'pasta',
     body: {
       character: 'pasta list',
-      quote: '맛있는 크림 파스타를 함께 만들어보아요^^'
+      quote: '맛있는 크림파스타를 함께 만들어보아요^^'
     }
   })
 
@@ -40,7 +40,7 @@ async function run () {
   const result= await client.search({
     index: 'pasta',
     query: {
-      match: { quote: '파스타 크림' }
+      match: { quote: '파스타' }
     }
   })
 
