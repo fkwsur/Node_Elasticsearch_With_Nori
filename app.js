@@ -9,38 +9,38 @@ const client = new Client({
 async function run () {
   // Let's start by indexing some data
   await client.index({
-    index: 'game-of-thrones',
+    index: 'pasta',
     body: {
-      character: 'Ned Stark',
-      quote: 'Winter is coming.'
+      character: 'pasta list',
+      quote: '맛있는 크림 파스타를 함께 만들어보아요^^'
     }
   })
 
-  await client.index({
-    index: 'game-of-thrones',
-    body: {
-      character: 'Daenerys Targaryen',
-      quote: 'I am the blood of the dragon.'
-    }
-  })
+  // await client.index({
+  //   index: 'game-of-thrones',
+  //   body: {
+  //     character: 'Daenerys Targaryen',
+  //     quote: 'I am the blood of the dragon.'
+  //   }
+  // })
 
-  await client.index({
-    index: 'game-of-thrones',
-    body: {
-      character: 'Tyrion Lannister',
-      quote: 'A mind needs books like a sword needs a whetstone.'
-    }
-  })
+  // await client.index({
+  //   index: 'game-of-thrones',
+  //   body: {
+  //     character: 'Tyrion Lannister',
+  //     quote: 'A mind needs books like a sword needs a whetstone.'
+  //   }
+  // })
 
   // here we are forcing an index refresh, otherwise we will not
   // get any result in the consequent search
-  await client.indices.refresh({ index: 'game-of-thrones' })
+  await client.indices.refresh({ index: 'pasta' })
 
   // Let's search!
   const result= await client.search({
-    index: 'game-of-thrones',
+    index: 'pasta',
     query: {
-      match: { quote: 'needs whetstone' }
+      match: { quote: '파스타 크림' }
     }
   })
 
