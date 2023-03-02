@@ -1,4 +1,6 @@
 const app = require("express")()
+const db = require('./models');
+const dotenv = require('dotenv');
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({
   // cloud: { id: '<cloud-id>' },
@@ -6,8 +8,23 @@ const client = new Client({
   node : "http://localhost:9200"
 })
 
-async function run () {
+db.sequelize
+  .authenticate()
+  .then(async () => {
+    try {
+      const { sequelize } = require("./models");
+      await sequelize.sync(true);
+      console.log("db connect ok");
+    } catch (err) {
+      console.log("seq:", err);
+    }
+  })
+  .catch(err => {
+    console.log('db' + err);
+  });
 
+
+async function run () {
   await client.index({
     index: 'nori',
     body: {
@@ -30,8 +47,7 @@ async function run () {
         }
       }
     }
-  
-      },
+    },
       character: 'pasta list',
       quote: '맛있는 크림파스타를 함께 만들어보아요^^'
     },
@@ -56,12 +72,12 @@ async function run () {
       match: { quote: '크림' }
     }
   })
-
   console.log(result.hits.hits)
 }
-
 run().catch(console.log)
 
-app.listen(8084, () => {
-    console.log("hi")
-})
+require('http')
+  .createServer(app)
+  .listen(8081, () => {
+    console.log('server on');
+  });
