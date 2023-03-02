@@ -37,7 +37,16 @@ async function run () {
     },
   })
 
-  // 노리 형태소 분석기 ahffk인덱스에 적용 후 nori인덱스에 있는 데이터 옮김
+  //sample
+  await client.index({
+    index: 'test',
+    body: {
+      character: 'Daenerys Targaryen',
+      quote: 'I am the blood of the dragon.'
+    }
+  })
+
+  // 노리 형태소 분석기 ahffk인덱스에 적용 후 nori에 있는 데이터 옮김
   await client.indices.refresh({ index: 'ahffk' })
 
   // Let's search!
