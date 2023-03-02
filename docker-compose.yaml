@@ -23,7 +23,6 @@ services:
       - elasticsearch
     networks:
       - elastic
-
 volumes:
   es_data:
     driver: local
