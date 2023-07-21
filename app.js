@@ -108,8 +108,7 @@ app.get('/search', async (req,res) => {
   }
 })
 
-
-// 엘라스틱 서치 배치 서버 만들었을때의 코드
+// 엘라스틱 서치 배치 서버 코드
 const Batch = async () => {
   try {
     let query =  'select search_sync.f_idx,search_sync.status,foods.name from search_sync inner join foods on search_sync.f_idx = foods.idx where search_sync.status in (?,?)'
@@ -126,8 +125,11 @@ const Batch = async () => {
               name: element.name
             }
           })
-      // 업데이트 해주는 로직    
-
+      const update  = await db.search_sync.update({
+        status : '0',
+        },{where : { f_idx : idx }
+      })
+      if(!update) throw "에러";
       }else if(element.status == '-1'){
         console.log("삭제")
         // 엘라스틱 서치 삭제하는 로직
@@ -137,12 +139,12 @@ const Batch = async () => {
     console.log(error);
   }
 }
-
+Batch();
 
 // 노리 인덱스 만들기 (초기에만 하면 됨)
 const CreateNoriIndex = async() => {
   try {
-    const CreateIndex = await axios.put('localhost:9200/nori_foods', {
+    await axios.put('http://localhost:9200/nori_foods', {
       settings : {
           analysis : {
               analyzer : {
@@ -168,11 +170,5 @@ const CreateNoriIndex = async() => {
     console.log(error);
   }
 }
-// CreateNoriIndex();
-// 노리 리인덱스 해주기
-
-
-Batch();
-
 
 app.listen(8084, () => console.log('running'))
