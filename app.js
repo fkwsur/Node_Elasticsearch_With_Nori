@@ -2,11 +2,13 @@ const express = require("express");
 const app = express();
 const db = require('./models');
 const {
-  Op
+  Op,
+  sequelize,
+  QueryTypes
 } = require("./models");
 const dotenv = require('dotenv');
 const { Client } = require('@elastic/elasticsearch');
-const { where } = require("sequelize");
+const axios  = require('axios');
 const client = new Client({
   // cloud: { id: '<cloud-id>' },
   // auth: { apiKey: 'base64EncodedKey' }
@@ -89,21 +91,43 @@ app.post('/delete', async (req,res) => {
     res.status(200).json({"error" : "에러"})
   }
 })
+app.get('/search', async (req,res) => {
+  try {
+      let {keyword} = req.query;
+      await client.indices.refresh({ index: 'reallasttest' })
+      const result = await client.search({
+        index: 'reallasttest',
+        query: {
+          match: { name: keyword }
+        }
+      })
+    return res.status(200).json(result.hits.hits)
+  } catch (error) {
+    console.log(error);
+    res.status(200).json({"error" : "에러"})
+  }
+})
+
 
 // 엘라스틱 서치 배치 서버 만들었을때의 코드
 const Batch = async () => {
   try {
-    const rows = await db.search_sync.findAll({
-      where : {
-        status : {
-          [Op.or]: [1, -1]
-        }
-      }
-    })
+    let query =  'select search_sync.f_idx,search_sync.status,foods.name from search_sync inner join foods on search_sync.f_idx = foods.idx where search_sync.status in (?,?)'
+    const rows = await sequelize.query(query, {
+      replacements: ["1","-1"],
+      type: QueryTypes.SELECT,
+    });
     for(element of rows){
       if(element.status == '1'){
-        console.log("삽입")
-        // 엘라스틱 서치에 넣거나 수정하는 로직
+          await client.index({
+            index: 'reallasttest',
+            id : element.f_idx,
+            body: {
+              name: element.name
+            }
+          })
+      // 업데이트 해주는 로직    
+
       }else if(element.status == '-1'){
         console.log("삭제")
         // 엘라스틱 서치 삭제하는 로직
@@ -114,59 +138,41 @@ const Batch = async () => {
   }
 }
 
+
+// 노리 인덱스 만들기 (초기에만 하면 됨)
+const CreateNoriIndex = async() => {
+  try {
+    const CreateIndex = await axios.put('localhost:9200/nori_foods', {
+      settings : {
+          analysis : {
+              analyzer : {
+                  default : {
+                      type : "nori"
+                  }
+              }
+          }
+      },
+      mappings : {
+          properties : {
+              character : {
+                  type : "keyword"
+              },
+              quote : {
+                  type : "text",
+                  analyzer  : "nori"
+              }
+          }
+      }
+  })
+  } catch (error) {
+    console.log(error);
+  }
+}
+// CreateNoriIndex();
+// 노리 리인덱스 해주기
+
+
 Batch();
 
-// async function run () {
-
-//   await client.index({
-//     index: 'nori',
-//     body: {
-//       settings: {
-//     index: {
-//       analysis: {
-//         tokenizer: {
-//           nori_user_dict: {
-//             type: "nori_tokenizer",
-//             decompound_mode: "mixed",
-//             discard_punctuation: "false",
-//             user_dictionary: "userdict_ko.txt"
-//           }
-//         },
-//         analyzer: {
-//           my_analyzer: {
-//             type: "custom",
-//             tokenizer: "파스타"
-//           }
-//         }
-//       }
-//     }
-//     },
-//       character: 'pasta list',
-//       quote: '맛있는 크림파스타를 함께 만들어보아요^^'
-//     },
-//   })
-
-//   //sample
-//   await client.index({
-//     index: 'test',
-//     body: {
-//       character: 'Daenerys Targaryen',
-//       quote: 'I am the blood of the dragon.'
-//     }
-//   })
-
-//   // 노리 형태소 분석기 ahffk인덱스에 적용 후 nori에 있는 데이터 옮김
-//   await client.indices.refresh({ index: 'ahffk' })
-
-//   // Let's search!
-//   const result= await client.search({
-//     index: 'foods',
-//     query: {
-//       match: { quote: '파스타' }
-//     }
-//   })
-//   console.log(result.hits.hits)
-// }
-// run().catch(console.log)
 
 app.listen(8084, () => console.log('running'))
