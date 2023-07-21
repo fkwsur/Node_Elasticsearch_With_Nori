@@ -118,21 +118,27 @@ const Batch = async () => {
     });
     for(element of rows){
       if(element.status == '1'){
-          await client.index({
-            index: 'reallasttest',
-            id : element.f_idx,
-            body: {
-              name: element.name
-            }
-          })
+      await client.index({
+        index: 'reallasttest',
+        id : element.f_idx,
+        body: {
+          name: element.name
+        }
+      })
       const update  = await db.search_sync.update({
         status : '0',
-        },{where : { f_idx : idx }
+        },{where : { f_idx : element.f_idx }
       })
       if(!update) throw "에러";
       }else if(element.status == '-1'){
-        console.log("삭제")
-        // 엘라스틱 서치 삭제하는 로직
+
+        // 아직 만지는 중
+
+        await axios.delete(`http://localhost:9200/reallasttest/_doc/${element.f_idx}`)
+        const delete_rows = await db.search_sync.destroy({
+          where : { f_idx : element.f_idx}
+        })
+        if(!delete_rows) throw "에러";
       }
     }
   } catch (error) {
