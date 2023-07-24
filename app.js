@@ -111,7 +111,7 @@ app.get('/search', async (req,res) => {
 // 엘라스틱 서치 배치 서버 코드
 const Batch = async () => {
   try {
-    let query =  'select search_sync.f_idx,search_sync.status,foods.name from search_sync inner join foods on search_sync.f_idx = foods.idx where search_sync.status in (?,?)'
+    let query =  'select search_sync.f_idx,search_sync.status,foods.name from search_sync left outer join foods on search_sync.f_idx = foods.idx where search_sync.status in (?,?)'
     const rows = await sequelize.query(query, {
       replacements: ["1","-1"],
       type: QueryTypes.SELECT,
@@ -132,9 +132,8 @@ const Batch = async () => {
       if(!update) throw "에러";
       }else if(element.status == '-1'){
 
-        // 아직 만지는 중
-
         await axios.delete(`http://localhost:9200/reallasttest/_doc/${element.f_idx}`)
+
         const delete_rows = await db.search_sync.destroy({
           where : { f_idx : element.f_idx}
         })
@@ -145,7 +144,7 @@ const Batch = async () => {
     console.log(error);
   }
 }
-Batch();
+
 
 // 노리 인덱스 만들기 (초기에만 하면 됨)
 const CreateNoriIndex = async() => {
@@ -177,4 +176,5 @@ const CreateNoriIndex = async() => {
   }
 }
 
+Batch();
 app.listen(8084, () => console.log('running'))
