@@ -40,14 +40,10 @@ app.post('/add', async (req,res) => {
   try {
     let {name} = req.body;
       const rows  = await db.foods.create({
-        name : name
+        name : name,
+        sync : 1
       })
       if(!rows) throw "에러";
-      const rows2  = await db.search_sync.create({
-        f_idx : rows.idx,
-        status : 1
-      })
-      if(!rows2) throw "에러";
       return res.status(200).json({"result" : "success"})
   } catch (error) {
     console.log(error)
@@ -58,15 +54,11 @@ app.post('/update', async (req,res) => {
   try {
     let {idx,name} = req.body;
       const rows  = await db.foods.update({
-        name : name
+        name : name,
+        sync : 1
         },{where : { idx : idx}
       })
       if(!rows) throw "에러";
-      const rows2  = await db.search_sync.update({
-        status : 1,
-      },{where : { f_idx : idx }
-      })
-      if(!rows2) throw "에러";
       return res.status(200).json({"result" : "success"})
   } catch (error) {
     console.log(error)
@@ -76,16 +68,12 @@ app.post('/update', async (req,res) => {
 app.post('/delete', async (req,res) => {
   try {
     let {idx} = req.body;
-      const rows  = await db.foods.destroy({
-        where : { idx : idx}
-      })
-      if(!rows) throw "에러";
-      const rows2  = await db.search_sync.update({
-        status : '-1',
-      },{where : { f_idx : idx }
-      })
-      if(!rows2) throw "에러";
-      return res.status(200).json({"result" : "success"})
+    const rows  = await db.foods.update({
+      sync : '-1'
+      },{where : { idx : idx}
+    })
+    if(!rows) throw "에러";
+    return res.status(200).json({"result" : "success"})
   } catch (error) {
     console.log(error)
     res.status(200).json({"error" : "에러"})
