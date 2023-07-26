@@ -38,22 +38,31 @@ const Batch = async () => {
       });
       let data1 = [];
       let data2 = [];
+      let dataset =[];
       for(element of rows){
         if(element.sync == '1'){
-          await client.index({
+          // await client.index({
+          //   index: 'reallasttest',
+          //   id : element.idx,
+          //   body: {
+          //    name: element.name
+          //   }
+          // })
+          let setIndex =  {
             index: 'reallasttest',
             id : element.idx,
             body: {
              name: element.name
             }
-          })
+          }
+          dataset.push(setIndex);
           data1.push(element.idx);
         }else if(element.sync == '-1'){
-          await axios.delete(`http://localhost:9200/reallasttest/_doc/${element.idx}`)
+          // await axios.delete(`http://localhost:9200/reallasttest/_doc/${element.idx}`)
           data2.push(element.idx);
         }
       }
-
+      await client.bulk({ dataset })
       await db.foods.update({
         sync : "0"
       },{
