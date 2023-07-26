@@ -48,6 +48,9 @@ const Batch = async () => {
           del_data.push(element.idx);
         }
       }
+
+      if(dataset.length == 0) return
+
       await client.bulk({
         body: dataset
       })
