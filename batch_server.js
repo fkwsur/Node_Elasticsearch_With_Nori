@@ -36,39 +36,28 @@ const Batch = async () => {
         replacements: ["1","-1"],
         type: QueryTypes.SELECT,
       });
-      let data1 = [];
-      let data2 = [];
+      let update_data = [];
+      let del_data = [];
       let dataset =[];
       for(element of rows){
         if(element.sync == '1'){
-          // await client.index({
-          //   index: 'reallasttest',
-          //   id : element.idx,
-          //   body: {
-          //    name: element.name
-          //   }
-          // })
-          let setIndex =  {
-            index: 'reallasttest',
-            id : element.idx,
-            body: {
-             name: element.name
-            }
-          }
-          dataset.push(setIndex);
-          data1.push(element.idx);
+          dataset.push({index: {_index: "reallasttest",_type: "_doc", _id: element.idx}},{name: element.name});
+          update_data.push(element.idx);
         }else if(element.sync == '-1'){
-          // await axios.delete(`http://localhost:9200/reallasttest/_doc/${element.idx}`)
-          data2.push(element.idx);
+          dataset.push({delete:{_index:"reallasttest", _id: element.idx}});
+          del_data.push(element.idx);
         }
       }
-      await client.bulk({ dataset })
+      await client.bulk({
+        body: dataset
+      })
+
       await db.foods.update({
         sync : "0"
       },{
-        where : { idx : data1 }
+        where : { idx : update_data }
       })
-      await db.foods.destroy({ where: { idx: data2 }})
+      await db.foods.destroy({ where: { idx: del_data }})
 
 
     } catch (error) {
