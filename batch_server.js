@@ -37,13 +37,13 @@ const Batch = async () => {
     try {
       const t = await sequelize.transaction();
 
-      let query =  'select * from foods where sync = ?'
+      let query =  'select * from foods where sync = ? FOR UPDATE'
       const rows = await sequelize.query(query, {
         replacements: ["1"],
         type: QueryTypes.SELECT,
         transaction: t
       });
-      let query2 =  'select * from foods where sync = ?'
+      let query2 =  'select * from foods where sync = ? FOR UPDATE'
       const rows2 = await sequelize.query(query2, {
         replacements: ["-1"],
         type: QueryTypes.SELECT,
