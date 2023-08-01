@@ -124,7 +124,7 @@ const Batch = async () => {
         where : { idx : update_data },
         transaction: t
       })
-      await db.foods.destroy({ 
+      await db.foods.destroy({
         where: { idx: del_data },
         transaction: t
       })

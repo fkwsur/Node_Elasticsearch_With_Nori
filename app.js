@@ -96,36 +96,4 @@ app.get('/search', async (req,res) => {
   }
 })
 
-
-// 노리 인덱스 만들기 (초기에만 하면 됨)
-const CreateNoriIndex = async() => {
-  try {
-    await axios.put('http://localhost:9200/nori_foods', {
-      settings : {
-          analysis : {
-              analyzer : {
-                  default : {
-                      type : "nori"
-                  }
-              }
-          }
-      },
-      mappings : {
-          properties : {
-              character : {
-                  type : "keyword"
-              },
-              quote : {
-                  type : "text",
-                  analyzer  : "nori"
-              }
-          }
-      }
-  })
-  } catch (error) {
-    console.log(error);
-  }
-}
-
-
 app.listen(8084, () => console.log('running'))
