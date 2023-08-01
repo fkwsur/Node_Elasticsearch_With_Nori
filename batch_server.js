@@ -28,9 +28,59 @@ db.sequelize
     console.log('db' + err);
   });
 
-  // 1. 엘라스틱 서치 인덱스가 있는지 확인
-  // 2. 엘라스틱 서치 인덱스가 없으면 인덱스를 만들어주고 3번을 타는거고 있으면 원래코드가 돌아가게 짜야 함
-  // 3. 원래 기존 인덱스 얘가가 아니라 새롭게 생긴 인덱스의 경우 : 모든값을 다 넣어버리기
+  // 1. 엘라스틱 서치 인덱스가 있는지 확인 o
+  // 2. 엘라스틱 서치 인덱스가 없으면 인덱스를 만들어주고 3번을 타는거고 있으면 원래코드가 돌아가게 짜야 함 o
+  // 3. 원래 기존 인덱스 얘가가 아니라 새롭게 생긴 인덱스의 경우 : 모든값을 다 넣어버리기 o
+
+const FindIndex = async () => {
+  try {
+    await client.search({
+      index: 'reallasttest'
+    }).catch(async (e) => {
+      if(e.toString().includes("ResponseError: index_not_found_exception") == true){
+        await axios.put('http://localhost:9200/reallasttest', {
+          settings : {
+              analysis : {
+                  analyzer : {
+                      default : {
+                          type : "nori"
+                      }
+                  }
+              }
+          },
+          mappings : {
+              properties : {
+                  character : {
+                      type : "keyword"
+                  },
+                  quote : {
+                      type : "text",
+                      analyzer  : "nori"
+                  }
+              }
+          }
+        })
+
+        let query =  'select * from foods'
+        const rows = await sequelize.query(query, {
+          type: QueryTypes.SELECT
+        });
+        let dataset =[];
+        for(element of rows){
+          dataset.push({index: {_index: "reallasttest",_type: "_doc", _id: element.idx}},{name: element.name});
+        }
+        await client.bulk({
+          body: dataset
+        })
+        return
+
+      }else return
+    })
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 
 // 엘라스틱 서치 배치 서버 코드
 const Batch = async () => {
@@ -85,6 +135,9 @@ const Batch = async () => {
     }
   }
 
+FindIndex();
+
 setInterval(() => {
     Batch();
 }, 2000);
+
