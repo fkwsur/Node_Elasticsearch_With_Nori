@@ -86,7 +86,7 @@ const FindIndex = async () => {
 const Batch = async () => {
     try {
       const t = await sequelize.transaction();
-
+      FindIndex();
       let query =  'select * from foods where sync = ? FOR UPDATE'
       const rows = await sequelize.query(query, {
         replacements: ["1"],
@@ -134,8 +134,6 @@ const Batch = async () => {
       if (t) await t.rollback();
     }
   }
-
-FindIndex();
 
 setInterval(() => {
     Batch();
