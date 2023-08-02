@@ -121,11 +121,11 @@ const Batch = async () => {
       await db.foods.update({
         sync : "0"
       },{
-        where : { idx : update_data },
+        where : { sync : "1" },
         transaction: t
       })
       await db.foods.destroy({
-        where: { idx: del_data },
+        where: { sync: "-1" },
         transaction: t
       })
       await t.commit();
